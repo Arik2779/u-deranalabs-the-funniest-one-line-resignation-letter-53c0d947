@@ -11,8 +11,30 @@ import os
 
 LINE = "After 4,096 retries, I am setting my backoff to never. This is my final attempt."
 
+MAX_CHARS = 140
+
+
+def validate_line(line: str) -> None:
+    """Check the entry line against the competition gate before writing.
+
+    The gate requires UTF-8 text of 1 to 140 characters, exactly one line,
+    and not only whitespace. Fail loudly here so a bad line never reaches
+    the judge instead of silently producing an invalid entry.
+    """
+    if not line:
+        raise ValueError("entry line is empty")
+    if line.strip() == "":
+        raise ValueError("entry line is only whitespace")
+    if "\n" in line or "\r" in line:
+        raise ValueError("entry line must be exactly one line")
+    if len(line) > MAX_CHARS:
+        raise ValueError(
+            f"entry line is {len(line)} characters, over the {MAX_CHARS} limit"
+        )
+
 
 def main() -> None:
+    validate_line(LINE)
     output_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     os.makedirs(output_dir, exist_ok=True)
     path = os.path.join(output_dir, "entry.txt")
